@@ -9,7 +9,7 @@ bool search_reverse_matrix(vector <vector<double>> &matrix)
 {
     int size = matrix.size();
     vector <vector<double>> E(size, vector<double>(size));
-
+    omp_set_num_threads(4);
     //Заполнение единичной матрицы
     for (int i = 0; i < size; i++)
     {
@@ -94,12 +94,6 @@ bool search_reverse_matrix(vector <vector<double>> &matrix)
     return true;
 }
 
-double random(const int min, const int max)
-{
-    if (min == max)
-        return min;
-    return min + rand() % (max - min);
-}
 
 int main(int argc, char *argv[])
 {
@@ -111,8 +105,8 @@ int main(int argc, char *argv[])
     vector<double> B(N);
 	ifstream f;
 	f.open("matrix"+to_string(N)+".txt");
-	for (i = 0; i<N; i++){
-		for (j = 0; j < N; j++)
+	for (int i = 0; i<N; i++){
+		for (int j = 0; j < N; j++)
 			f >> matrix[i][j];
 	}
 
