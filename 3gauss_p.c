@@ -3,13 +3,14 @@
 #include <omp.h>
 #include <vector>
 #include <cmath>
+#include <fstream>
+#define THREADS 3
 using namespace std;
 
 bool search_reverse_matrix(vector <vector<double>> &matrix)
 {
     int size = matrix.size();
     vector <vector<double>> E(size, vector<double>(size));
-    omp_set_num_threads(4);
     //Заполнение единичной матрицы
     for (int i = 0; i < size; i++)
     {
@@ -43,26 +44,26 @@ bool search_reverse_matrix(vector <vector<double>> &matrix)
         }
 
         double div = matrix[k][k];
-
-#pragma omp parallel
+	int j;
+#pragma omp parallel num_threads(THREADS) default(shared)
         {
 #pragma omp for
-            for (int j = 0; j < size; j++)
+            for (j = 0; j < size; j++)
             {
                 matrix[k][j] /= div;
                 E[k][j] /= div;
             }
         }
-
-#pragma omp parallel
+	int i;
+#pragma omp parallel num_threads(THREADS) default(shared)
         {
-#pragma omp for
-            for (int i = k + 1; i < size; i++)
+#pragma omp for private(j)
+            for (i = k + 1; i < size; i++)
             {
                 double multi = matrix[i][k];
 
 
-                for (int j = 0; j < size; j++)
+                for (j = 0; j < size; j++)
                 {
                     matrix[i][j] -= multi * matrix[k][j];
                     E[i][j] -= multi * E[k][j];
@@ -73,16 +74,17 @@ bool search_reverse_matrix(vector <vector<double>> &matrix)
 
     //Формирование единичной матрицы из исходной
     //и обратной из единичной
+    int i, j;
     for (int k = size - 1; k > 0; k--)
     {
-#pragma omp parallel
+#pragma omp parallel default(shared) num_threads(THREADS)
     {
-#pragma omp for
-        for (int i = k - 1; i > -1; i--)
+#pragma omp for private(j)
+        for (i = k - 1; i > -1; i--)
         {
             double multi = matrix[i][k];
 
-            for (int j = 0; j < size; j++)
+            for (j = 0; j < size; j++)
             {
                 matrix[i][j] -= multi * matrix[k][j];
                 E[i][j] -= multi * E[k][j];
